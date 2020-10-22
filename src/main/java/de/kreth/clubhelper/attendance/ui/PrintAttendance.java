@@ -19,7 +19,8 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.VaadinServlet;
 
 import de.kreth.clubhelper.attendance.data.Person;
-import de.kreth.clubhelper.attendance.remote.ClubhelperRest;
+import de.kreth.clubhelper.attendance.remote.Business;
+import de.kreth.clubhelper.attendance.remote.BusinessImpl;
 
 @Route("print")
 @Push
@@ -67,9 +68,9 @@ public class PrintAttendance extends VerticalLayout {
 		|| p.getSurname().toLowerCase().startsWith(filter);
     }
 
-    ClubhelperRest getRestService() {
+    Business getRestService() {
 	return WebApplicationContextUtils.getWebApplicationContext(VaadinServlet.getCurrent().getServletContext())
-		.getBean(ClubhelperRest.class);
+		.getBean(BusinessImpl.class);
     }
 
 }
