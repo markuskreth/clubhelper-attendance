@@ -7,9 +7,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,8 @@ import de.kreth.clubhelper.attendance.data.PersonAttendance;
 
 @Service
 public class BusinessImpl implements Business {
+
+    protected Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
     private RestTemplate webClient;
@@ -36,15 +39,33 @@ public class BusinessImpl implements Business {
     }
 
     @Override
+    public PersonAttendance sendAttendance(PersonAttendance person, LocalDate attendanceDate, Boolean isAttendant) {
+
+	if (isAttendant != null && isAttendant.booleanValue()) {
+	    String url = apiUrl + "/attendance/for/" + person.getId();
+	    Attendance result = webClient.postForObject(url, attendanceDate, Attendance.class);
+	    if (result.getPerson().getId() != person.getId()) {
+		throw new IllegalStateException("Wrong person Id returned");
+	    }
+	    return PersonAttendance.createBy(result);
+	} else {
+	    String url = apiUrl + "/attendance/" + person.getId() + "/"
+		    + attendanceDate.format(DateTimeFormatter.ISO_DATE);
+	    webClient.delete(url);
+	    person.setOnDate(null);
+	    return person;
+	}
+    }
+
+    @Override
     public List<PersonAttendance> getAttendance(LocalDate date) {
 
 	String url = apiUrl + "/attendance/" + date.format(DateTimeFormatter.ISO_DATE);
 
 	try {
-	    List<Person> persons = getPersons();
-	    ResponseEntity<Attendance[]> forEntity = webClient.getForEntity(url, Attendance[].class);
+	    List<Person> persons = new ArrayList<>(getPersons());
+	    Attendance[] body = webClient.getForObject(url, Attendance[].class);
 
-	    Attendance[] body = forEntity.getBody();
 	    List<PersonAttendance> result = new ArrayList<>();
 	    for (Attendance attendance : body) {
 		persons.remove(attendance.getPerson());
@@ -66,8 +87,4 @@ public class BusinessImpl implements Business {
 	return SecurityContextHolder.getContext().getAuthentication();
     }
 
-    @Override
-    public void sendAttendance(PersonAttendance person, LocalDate attendanceDate, Boolean isAttendant) {
-
-    }
 }

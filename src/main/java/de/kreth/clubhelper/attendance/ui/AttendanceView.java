@@ -48,7 +48,6 @@ public class AttendanceView extends VerticalLayout
 	TextField filter = new TextField("Filter des Vor- oder Nachnamens");
 	filter.setPlaceholder("Filter nach Name...");
 	filter.setClearButtonVisible(true);
-//	filter.setValueChangeMode(ValueChangeMode.EAGER);
 
 	filter.addValueChangeListener(this);
 
@@ -68,12 +67,6 @@ public class AttendanceView extends VerticalLayout
 	personList.setFilterText(event.getValue());
     }
 
-//    @Override
-//    public void onComponentEvent(KeyPressEvent event) {
-//	TextField tf = (TextField) event.getSource();
-//	personList.setFilterText(tf.getValue());
-//    }
-
     private Checkbox attendanteComponent(PersonAttendance person) {
 
 	Checkbox box = new Checkbox();
@@ -85,7 +78,8 @@ public class AttendanceView extends VerticalLayout
     private void sendPersonAttendance(PersonAttendance person, ComponentValueChangeEvent<Checkbox, Boolean> ev) {
 	Boolean selected = ev.getValue();
 	LocalDate attendanceDate = date.getValue();
-	getRestService().sendAttendance(person, attendanceDate, selected);
+	PersonAttendance result = getRestService().sendAttendance(person, attendanceDate, selected);
+	personList.update(result);
     }
 
     private void refreshData() {

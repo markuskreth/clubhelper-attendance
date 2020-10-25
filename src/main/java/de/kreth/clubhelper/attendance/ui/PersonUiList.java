@@ -28,6 +28,15 @@ public class PersonUiList implements Serializable {
     public void setPersons(Collection<PersonAttendance> update) {
 	persons.clear();
 	persons.addAll(update);
+	ofCollection.refreshAll();
+    }
+
+    public void update(PersonAttendance result) {
+	int index = persons.indexOf(result);
+	persons.remove(index);
+	persons.add(index, result);
+
+	ofCollection.refreshItem(result);
     }
 
     public String getFilterText() {
@@ -49,4 +58,5 @@ public class PersonUiList implements Serializable {
     public DataProvider<PersonAttendance, ?> getDataProvider() {
 	return ofCollection;
     }
+
 }

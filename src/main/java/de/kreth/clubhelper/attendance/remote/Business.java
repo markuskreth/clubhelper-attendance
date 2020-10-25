@@ -16,6 +16,6 @@ public interface Business {
 
     Authentication getCurrent();
 
-    void sendAttendance(PersonAttendance person, LocalDate attendanceDate, Boolean isAttendant);
+    PersonAttendance sendAttendance(PersonAttendance person, LocalDate attendanceDate, Boolean isAttendant);
 
 }
