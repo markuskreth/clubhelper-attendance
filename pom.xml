@@ -131,6 +131,8 @@
 							<includes>
 								<include>*.json</include>
 								<include>*.js</include>
+								<include>pnpm-lock.yaml</include>
+								<include>types.d.ts</include>
 							</includes>
 							<followSymlinks>false</followSymlinks>
 						</fileset>
