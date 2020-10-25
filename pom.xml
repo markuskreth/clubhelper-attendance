@@ -111,8 +111,31 @@
 							<goal>prepare-frontend</goal>
 							<goal>build-frontend</goal>
 						</goals>
+						<phase>compile</phase>
 					</execution>
 				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-clean-plugin</artifactId>
+				<configuration>
+					<filesets>
+						<fileset>
+							<directory>node_modules</directory>
+							<includes>
+								<include>**</include>
+							</includes>
+							<followSymlinks>false</followSymlinks>
+						</fileset>
+						<fileset>
+							<directory>.</directory>
+							<includes>
+								<include>*.json</include>
+								<include>*.js</include>
+							</includes>
+							<followSymlinks>false</followSymlinks>
+						</fileset>
+					</filesets>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
