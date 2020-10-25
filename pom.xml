@@ -139,12 +139,52 @@
 			</plugin>
 		</plugins>
 	</build>
-	<profiles>
-		<profile>
-			<id>production</id>
-			<properties>
-				<vaadin.productionMode>true</vaadin.productionMode>
-			</properties>
-		</profile>
-	</profiles>
+	
+	
+    <profiles>
+        <profile>
+            <id>productionMode</id>
+            <activation>
+                <property>
+                    <name>vaadin.productionMode</name>
+                </property>
+            </activation>
+
+            <dependencies>
+                <dependency>
+                    <groupId>com.vaadin</groupId>
+                    <artifactId>flow-server-production-mode</artifactId>
+                </dependency>
+            </dependencies>
+
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.vaadin</groupId>
+                        <artifactId>flow-maven-plugin</artifactId>
+                        <version>${flow.maven.plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>copy-production-files</goal>
+                                    <goal>package-for-production</goal>
+                                </goals>
+                                <configuration>
+                                    <transpileOutputDirectory>${webapp.directory}</transpileOutputDirectory>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-maven-plugin</artifactId>
+                        <configuration>
+                            <jvmArguments>-Dvaadin.productionMode</jvmArguments>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
