@@ -13,6 +13,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.core.authority.mapping.SimpleAuthorityMapper;
 import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.web.authentication.session.RegisterSessionAuthenticationStrategy;
@@ -59,6 +60,33 @@ public class UiSecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
 //		.and().authorizeRequests()
 		.anyRequest().authenticated();
 
+    }
+
+    @Override
+    public void configure(WebSecurity web) throws Exception {
+	web.ignoring().antMatchers(
+		// Vaadin Flow static resources //
+		"/VAADIN/**",
+
+		// the standard favicon URI
+		"/favicon.ico",
+
+		// the robots exclusion standard
+		"/robots.txt",
+
+		// web application manifest //
+		"/manifest.webmanifest",
+		"/sw.js",
+		"/offline-page.html",
+
+		// (development mode) static resources //
+		"/frontend/**",
+
+		// (development mode) webjars //
+		"/webjars/**",
+
+		// (production mode) static resources //
+		"/frontend-es5/**", "/frontend-es6/**");
     }
 
 }
