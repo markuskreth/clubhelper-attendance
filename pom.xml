@@ -19,6 +19,7 @@
 		<java.version>11</java.version>
 		<org.keycloak.version>11.0.1</org.keycloak.version>
 		<vaadin.version>14.3.4</vaadin.version>
+		<flow.maven.plugin.version>4.0.4</flow.maven.plugin.version>
 	</properties>
 
 	<dependencies>
