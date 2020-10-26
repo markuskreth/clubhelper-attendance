@@ -152,16 +152,17 @@
                     <name>vaadin.productionMode</name>
                 </property>
             </activation>
-
+<!-- 
             <dependencies>
                 <dependency>
                     <groupId>com.vaadin</groupId>
                     <artifactId>flow-server-production-mode</artifactId>
                 </dependency>
             </dependencies>
-
+ -->
             <build>
                 <plugins>
+<!-- 
                     <plugin>
                         <groupId>com.vaadin</groupId>
                         <artifactId>flow-maven-plugin</artifactId>
@@ -178,7 +179,7 @@
                             </execution>
                         </executions>
                     </plugin>
-
+ -->
                     <plugin>
                         <groupId>org.springframework.boot</groupId>
                         <artifactId>spring-boot-maven-plugin</artifactId>
