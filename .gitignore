@@ -32,5 +32,5 @@ build/
 ### VS Code ###
 .vscode/
 
-### VAADIN ###
-node_modules/
+# The following files are generated/updated by vaadin-maven-plugin
+node_modules
