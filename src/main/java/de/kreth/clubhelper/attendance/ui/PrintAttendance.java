@@ -58,7 +58,7 @@ public class PrintAttendance extends VerticalLayout {
     }
 
     private boolean filterByName(Person p) {
-	if (namefilter.getValue() == null || namefilter.getValue().isBlank()) {
+	if (namefilter.getValue() == null || namefilter.getValue().trim().isEmpty()) {
 	    return true;
 	}
 

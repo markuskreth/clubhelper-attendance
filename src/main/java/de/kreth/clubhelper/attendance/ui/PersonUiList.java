@@ -50,7 +50,7 @@ public class PersonUiList implements Serializable {
 
     private boolean matches(PersonAttendance person) {
 	return filterText == null
-		|| filterText.isBlank()
+		|| filterText.trim().isEmpty()
 		|| person.getPrename().toLowerCase().contains(filterText)
 		|| person.getSurname().toLowerCase().contains(filterText);
     }
