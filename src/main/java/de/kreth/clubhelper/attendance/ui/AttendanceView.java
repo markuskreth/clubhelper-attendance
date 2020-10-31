@@ -24,10 +24,7 @@ import de.kreth.clubhelper.attendance.data.PersonAttendance;
 import de.kreth.clubhelper.attendance.remote.Business;
 
 @Route("")
-@PWA(name = "MTV Trampolin Anwesenheit",
-shortName = "Anwesenheit",
-description = "Dies ist eine App zur Erfassung von Anwesenheiten für die Trampolingruppe des MTV Groß-Buchholz.",
-enableInstallPrompt = false)
+@PWA(name = "MTV Trampolin Anwesenheit", shortName = "Anwesenheit", description = "Dies ist eine App zur Erfassung von Anwesenheiten für die Trampolingruppe des MTV Groß-Buchholz.", enableInstallPrompt = false)
 @CssImport("./styles/shared-styles.css")
 @CssImport(value = "./styles/vaadin-text-field-styles.css", themeFor = "vaadin-text-field")
 @PageTitle("Anwesenheit")
@@ -60,9 +57,9 @@ public class AttendanceView extends VerticalLayout
 	filter.addValueChangeListener(this);
 
 	Grid<PersonAttendance> grid = new Grid<>();
-	grid.addColumn(new ComponentRenderer<>(this::attendanteComponent)).setHeader("Anwesend");
-	grid.addColumn(PersonAttendance::getPrename).setHeader("Vorname");
-	grid.addColumn(PersonAttendance::getSurname).setHeader("Nachname");
+	grid.addColumn(new ComponentRenderer<>(this::attendanteComponent)).setHeader("Anwesend").setSortable(true);
+	grid.addColumn(PersonAttendance::getPrename).setHeader("Vorname").setSortable(true);
+	grid.addColumn(PersonAttendance::getSurname).setHeader("Nachname").setSortable(true);
 
 	grid.setDataProvider(personList.getDataProvider());
 
