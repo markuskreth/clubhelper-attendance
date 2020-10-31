@@ -49,6 +49,7 @@ public class AttendanceView extends VerticalLayout
 	date = new DatePicker(LocalDate.now());
 	date.setLabel("Anwesenheit Datum");
 	date.setRequired(true);
+	date.setLocale(Locale.getDefault());
 
 	TextField filter = new TextField("Filter des Vor- oder Nachnamens");
 	filter.setPlaceholder("Filter nach Name...");
