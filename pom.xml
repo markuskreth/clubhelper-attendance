@@ -170,7 +170,6 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.8.0</version>
 				<configuration>
 					<release>${maven.compiler.release}</release>
 				</configuration>
@@ -236,7 +235,6 @@
 						<artifactId>spring-boot-maven-plugin</artifactId>
 						<configuration>
 							<jvmArguments>-Dvaadin.productionMode</jvmArguments>
-
 							<layers>
 								<enabled>true</enabled>
 							</layers>
