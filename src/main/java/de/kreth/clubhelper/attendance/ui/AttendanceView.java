@@ -99,6 +99,7 @@ public class AttendanceView extends VerticalLayout
 	}
 
 	private boolean withEditor() {
+		logger.info("personEditorUrl: {}", personeditorUrl);
 		return personeditorUrl != null;
 	}
 
