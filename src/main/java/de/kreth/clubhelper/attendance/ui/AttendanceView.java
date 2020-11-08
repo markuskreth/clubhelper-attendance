@@ -37,101 +37,102 @@ import de.kreth.clubhelper.attendance.remote.Business;
 @CssImport(value = "./styles/vaadin-text-field-styles.css", themeFor = "vaadin-text-field")
 @PageTitle("Anwesenheit")
 public class AttendanceView extends VerticalLayout
-		implements ValueChangeListener<ComponentValueChangeEvent<TextField, String>> {
+	implements ValueChangeListener<ComponentValueChangeEvent<TextField, String>> {
 
-	private static final long serialVersionUID = 1L;
-	private final Logger logger = LoggerFactory.getLogger(getClass());
+    private static final long serialVersionUID = 1L;
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
-	@Value("${personeditor.url:#{null}}")
-	private String personeditorUrl;
+    private String personeditorUrl;
 
-	private final PersonUiList personList;
+    private final PersonUiList personList;
 
-	private DatePicker date;
+    private DatePicker date;
 
-	public AttendanceView() {
-		personList = new PersonUiList();
-		createUi();
-		refreshData();
+    public AttendanceView(@Value("${personeditor.url}") String personeditorUrl) {
+	this.personeditorUrl = personeditorUrl;
+	personList = new PersonUiList();
+	createUi();
+	refreshData();
+    }
+
+    private void createUi() {
+	add(new H1("Anwesenheit"));
+
+	date = new DatePicker(LocalDate.now());
+	date.setLabel("Anwesenheit Datum");
+	date.setRequired(true);
+	date.setLocale(Locale.getDefault());
+
+	TextField filter = new TextField("Filter des Vor- oder Nachnamens");
+	filter.setPlaceholder("Filter nach Name...");
+	filter.setClearButtonVisible(true);
+
+	filter.addValueChangeListener(this);
+
+	Grid<PersonAttendance> grid = new Grid<>();
+	grid.addColumn(new ComponentRenderer<>(this::attendanteComponent)).setHeader("Anwesend").setFlexGrow(2)
+		.setSortable(true);
+	grid.addColumn(PersonAttendance::getPrename).setHeader("Vorname").setFlexGrow(3).setSortable(true);
+	grid.addColumn(PersonAttendance::getSurname).setHeader("Nachname").setFlexGrow(3).setSortable(true);
+	if (withEditor()) {
+	    grid.addComponentColumn(this::createEditorButton).setFlexGrow(1);
 	}
 
-	private void createUi() {
-		add(new H1("Anwesenheit"));
+	grid.setDataProvider(personList.getDataProvider());
 
-		date = new DatePicker(LocalDate.now());
-		date.setLabel("Anwesenheit Datum");
-		date.setRequired(true);
-		date.setLocale(Locale.getDefault());
+	add(date, filter, grid);
+	date.addValueChangeListener(ev -> refreshData());
+    }
 
-		TextField filter = new TextField("Filter des Vor- oder Nachnamens");
-		filter.setPlaceholder("Filter nach Name...");
-		filter.setClearButtonVisible(true);
+    Button createEditorButton(PersonAttendance p) {
+	Button b = new Button(VaadinIcon.PENCIL.create());
+	b.addClickListener(ev -> this.onClick(ev, p.getId()));
+	return b;
+    }
 
-		filter.addValueChangeListener(this);
+    private void onClick(ClickEvent<Button> ev, int personId) {
+	getUI().ifPresent(ui -> {
+	    Page page = ui.getPage();
+	    String url = this.personeditorUrl + "/" + personId;
+	    logger.info("opening editor with uri {}", url);
+	    page.open(url, "_self");
+	});
+    }
 
-		Grid<PersonAttendance> grid = new Grid<>();
-		grid.addColumn(new ComponentRenderer<>(this::attendanteComponent)).setHeader("Anwesend").setSortable(true);
-		grid.addColumn(PersonAttendance::getPrename).setHeader("Vorname").setSortable(true);
-		grid.addColumn(PersonAttendance::getSurname).setHeader("Nachname").setSortable(true);
-		if (withEditor()) {
-			grid.addComponentColumn(this::createEditorButton);
-		}
+    private boolean withEditor() {
+	logger.info("personEditorUrl: {}", personeditorUrl);
+	return personeditorUrl != null;
+    }
 
-		grid.setDataProvider(personList.getDataProvider());
+    @Override
+    public void valueChanged(ComponentValueChangeEvent<TextField, String> event) {
+	personList.setFilterText(event.getValue());
+    }
 
-		add(date, filter, grid);
-		date.addValueChangeListener(ev -> refreshData());
-	}
+    private Checkbox attendanteComponent(PersonAttendance person) {
 
-	Button createEditorButton(PersonAttendance p) {
-		Button b = new Button(VaadinIcon.PENCIL.create());
-		b.addClickListener(ev -> this.onClick(ev, p.getId()));
-		return b;
-	}
+	Checkbox box = new Checkbox();
+	box.setValue(person.isAttendante());
+	box.addValueChangeListener(ev -> sendPersonAttendance(person, ev));
+	return box;
+    }
 
-	private void onClick(ClickEvent<Button> ev, int personId) {
-		getUI().ifPresent(ui -> {
-			Page page = ui.getPage();
-			String url = this.personeditorUrl + "/" + personId;
-			logger.info("opening editor with uri {}", url);
-			page.open(url, "_self");
-		});
-	}
+    private void sendPersonAttendance(PersonAttendance person, ComponentValueChangeEvent<Checkbox, Boolean> ev) {
+	Boolean selected = ev.getValue();
+	LocalDate attendanceDate = date.getValue();
+	PersonAttendance result = getRestService().sendAttendance(person, attendanceDate, selected);
+	personList.update(result);
+    }
 
-	private boolean withEditor() {
-		logger.info("personEditorUrl: {}", personeditorUrl);
-		return personeditorUrl != null;
-	}
+    private void refreshData() {
+	Business restService = getRestService();
+	List<PersonAttendance> attendanceAsJson = restService.getAttendance(date.getValue());
+	personList.setPersons(attendanceAsJson);
+    }
 
-	@Override
-	public void valueChanged(ComponentValueChangeEvent<TextField, String> event) {
-		personList.setFilterText(event.getValue());
-	}
-
-	private Checkbox attendanteComponent(PersonAttendance person) {
-
-		Checkbox box = new Checkbox();
-		box.setValue(person.isAttendante());
-		box.addValueChangeListener(ev -> sendPersonAttendance(person, ev));
-		return box;
-	}
-
-	private void sendPersonAttendance(PersonAttendance person, ComponentValueChangeEvent<Checkbox, Boolean> ev) {
-		Boolean selected = ev.getValue();
-		LocalDate attendanceDate = date.getValue();
-		PersonAttendance result = getRestService().sendAttendance(person, attendanceDate, selected);
-		personList.update(result);
-	}
-
-	private void refreshData() {
-		Business restService = getRestService();
-		List<PersonAttendance> attendanceAsJson = restService.getAttendance(date.getValue());
-		personList.setPersons(attendanceAsJson);
-	}
-
-	Business getRestService() {
-		return WebApplicationContextUtils.getWebApplicationContext(VaadinServlet.getCurrent().getServletContext())
-				.getBean(Business.class);
-	}
+    Business getRestService() {
+	return WebApplicationContextUtils.getWebApplicationContext(VaadinServlet.getCurrent().getServletContext())
+		.getBean(Business.class);
+    }
 
 }
