@@ -10,14 +10,14 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Aspect
-public class RestLoggerAspect extends AbstractLoggerAspect {
+public class OpenUrlLoggerAspect extends AbstractLoggerAspect {
 
-    @Pointcut("execution (public * org.springframework.web.client.RestTemplate..*(..))")
+    @Pointcut("execution (public * com.vaadin.flow.component.page.Page.open(..))")
     private void invocation() {
     }
 
     @Before("invocation()")
-    public void logRestCall(JoinPoint joinPoint) {
+    public void logPageOpen(JoinPoint joinPoint) {
 	log(INFO, joinPoint);
     }
 

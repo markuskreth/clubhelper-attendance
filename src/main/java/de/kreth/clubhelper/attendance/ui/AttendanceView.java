@@ -4,8 +4,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Locale;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
@@ -40,7 +38,6 @@ public class AttendanceView extends VerticalLayout
 	implements ValueChangeListener<ComponentValueChangeEvent<TextField, String>> {
 
     private static final long serialVersionUID = 1L;
-    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private String personeditorUrl;
 
@@ -94,13 +91,11 @@ public class AttendanceView extends VerticalLayout
 	getUI().ifPresent(ui -> {
 	    Page page = ui.getPage();
 	    String url = this.personeditorUrl + "/" + personId;
-	    logger.info("opening editor with uri {}", url);
 	    page.open(url, "_self");
 	});
     }
 
     private boolean withEditor() {
-	logger.info("personEditorUrl: {}", personeditorUrl);
 	return personeditorUrl != null;
     }
 

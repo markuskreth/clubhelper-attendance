@@ -21,7 +21,7 @@ public class ControllerLoggerAspect extends AbstractLoggerAspect {
     }
 
     @Before("invocation()")
-    public void logDao(JoinPoint joinPoint) throws Throwable {
+    public void logCall(JoinPoint joinPoint) throws Throwable {
 	log(INFO, joinPoint);
     }
 
