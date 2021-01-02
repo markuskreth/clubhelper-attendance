@@ -87,7 +87,7 @@ public class AttendanceView extends VerticalLayout
 	return b;
     }
 
-    private void onClick(ClickEvent<Button> ev, int personId) {
+    private void onClick(ClickEvent<Button> ev, Long personId) {
 	getUI().ifPresent(ui -> {
 	    Page page = ui.getPage();
 	    String url = this.personeditorUrl + "/" + personId;

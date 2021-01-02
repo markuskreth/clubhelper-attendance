@@ -16,9 +16,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import de.kreth.clubhelper.attendance.data.Attendance;
-import de.kreth.clubhelper.attendance.data.Person;
 import de.kreth.clubhelper.attendance.data.PersonAttendance;
+import de.kreth.clubhelper.data.Attendance;
+import de.kreth.clubhelper.data.Person;
 
 @Service
 public class BusinessImpl implements Business {

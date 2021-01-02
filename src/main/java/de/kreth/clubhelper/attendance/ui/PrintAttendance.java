@@ -18,9 +18,9 @@ import com.vaadin.flow.data.provider.ListDataProvider;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.VaadinServlet;
 
-import de.kreth.clubhelper.attendance.data.Person;
 import de.kreth.clubhelper.attendance.remote.Business;
 import de.kreth.clubhelper.attendance.remote.BusinessImpl;
+import de.kreth.clubhelper.data.Person;
 
 @Route("print")
 @Push

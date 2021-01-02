@@ -5,8 +5,8 @@ import java.util.List;
 
 import org.springframework.security.core.Authentication;
 
-import de.kreth.clubhelper.attendance.data.Person;
 import de.kreth.clubhelper.attendance.data.PersonAttendance;
+import de.kreth.clubhelper.data.Person;
 
 public interface Business {
 
