@@ -84,15 +84,21 @@ public class AttendanceView extends VerticalLayout
     Button createEditorButton(PersonAttendance p) {
 	Button b = new Button(VaadinIcon.PENCIL.create());
 	b.addClickListener(ev -> this.onClick(ev, p.getId()));
+	b.getElement().setProperty("title", "Editor für " + p.getSurname() + ", " + p.getPrename());
+	b.addClassName("BUTTON_LINK");
 	return b;
     }
 
     private void onClick(ClickEvent<Button> ev, Long personId) {
 	getUI().ifPresent(ui -> {
 	    Page page = ui.getPage();
-	    String url = this.personeditorUrl + "/" + personId;
+	    String url = editUrlForPersonId(personId);
 	    page.open(url, "_self");
 	});
+    }
+
+    private String editUrlForPersonId(Long personId) {
+	return this.personeditorUrl + "/" + personId;
     }
 
     private boolean withEditor() {
