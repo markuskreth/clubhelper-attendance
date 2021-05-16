@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Locale;
 
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
@@ -47,6 +48,7 @@ public class AttendanceView extends VerticalLayout
 
     public AttendanceView(@Value("${personeditor.url}") String personeditorUrl) {
 	this.personeditorUrl = personeditorUrl;
+	LoggerFactory.getLogger(getClass()).info("Using PersonEditor URL: " + personeditorUrl);
 	personList = new PersonUiList();
 	createUi();
 	refreshData();
@@ -102,7 +104,7 @@ public class AttendanceView extends VerticalLayout
     }
 
     private boolean withEditor() {
-	return personeditorUrl != null;
+	return !"NONE".equals(personeditorUrl);
     }
 
     @Override
