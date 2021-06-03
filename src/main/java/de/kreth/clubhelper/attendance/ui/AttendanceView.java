@@ -18,6 +18,7 @@ import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.page.Page;
 import com.vaadin.flow.component.textfield.TextField;
@@ -79,7 +80,13 @@ public class AttendanceView extends VerticalLayout
 
 	grid.setDataProvider(personList.getDataProvider());
 
-	add(date, filter, grid);
+	HorizontalLayout components = new HorizontalLayout(date, filter);
+
+	add(components, grid);
+
+	setHeight("100%");
+	grid.setHeight("100%");
+
 	date.addValueChangeListener(ev -> refreshData());
     }
 
