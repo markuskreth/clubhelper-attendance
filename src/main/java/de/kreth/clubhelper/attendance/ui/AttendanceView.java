@@ -1,11 +1,13 @@
 package de.kreth.clubhelper.attendance.ui;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
 
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
 import com.vaadin.flow.component.AbstractField.ComponentValueChangeEvent;
@@ -36,6 +38,7 @@ import de.kreth.clubhelper.attendance.remote.Business;
 @CssImport("./styles/shared-styles.css")
 @CssImport(value = "./styles/vaadin-text-field-styles.css", themeFor = "vaadin-text-field")
 @PageTitle("Anwesenheit")
+@PreAuthorize("hasRole('ROLE_trainer')")
 public class AttendanceView extends VerticalLayout
 	implements ValueChangeListener<ComponentValueChangeEvent<TextField, String>> {
 
@@ -80,7 +83,11 @@ public class AttendanceView extends VerticalLayout
 
 	grid.setDataProvider(personList.getDataProvider());
 
-	HorizontalLayout components = new HorizontalLayout(date, filter);
+	Button printButton = new Button(VaadinIcon.PRINT.create());
+	printButton.addClickListener(e -> printButton.getUI().ifPresent(
+		ui -> ui.navigate(PrintAttendance.class, date.getValue().format(DateTimeFormatter.BASIC_ISO_DATE))));
+	HorizontalLayout components = new HorizontalLayout(date, filter, printButton);
+	components.setAlignSelf(Alignment.END, printButton);
 
 	add(components, grid);
 

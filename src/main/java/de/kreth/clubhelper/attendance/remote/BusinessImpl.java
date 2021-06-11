@@ -17,7 +17,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import de.kreth.clubhelper.attendance.data.PersonAttendance;
+import de.kreth.clubhelper.data.Adress;
 import de.kreth.clubhelper.data.Attendance;
+import de.kreth.clubhelper.data.Contact;
 import de.kreth.clubhelper.data.Person;
 
 @Service
@@ -80,6 +82,22 @@ public class BusinessImpl implements Business {
 	} catch (Exception e) {
 	    throw new RuntimeException(e);
 	}
+    }
+
+    @Override
+    public List<Contact> getContacts(Long personId) {
+	String url = apiUrl + "/contact/for/" + personId;
+	Contact[] contactArr = webClient.getForObject(url, Contact[].class);
+
+	return Arrays.asList(contactArr);
+    }
+
+    @Override
+    public Adress getAdress(Long personId) {
+	String url = apiUrl + "/adress/for/" + personId;
+	Adress[] arr = webClient.getForObject(url, Adress[].class);
+
+	return arr != null && arr.length > 0 ? arr[0] : null;
     }
 
     @Override
