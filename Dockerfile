@@ -9,6 +9,6 @@ COPY --from=builder dependencies/ ./
 COPY --from=builder snapshot-dependencies/ ./
 COPY --from=builder spring-boot-loader/ ./
 COPY --from=builder application/ ./
+ENV JAVA_OPTS="-Duser.language=de -Duser.country=DE -Duser.region=DE"
 ENV TZ=Europe/Berlin
-ENV JAVA_OPTS="-Duser.language=de -Duser.country=DE"
 ENTRYPOINT ["java", "org.springframework.boot.loader.JarLauncher"]
