@@ -8,6 +8,9 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.vaadin.flow.server.StreamResource;
 import com.vaadin.flow.server.StreamResourceWriter;
 import com.vaadin.flow.server.VaadinSession;
@@ -18,6 +21,7 @@ import de.kreth.clubhelper.data.Contact;
 
 class CoronaCsvExporter implements Exporter {
 
+    private final Logger logger = LoggerFactory.getLogger(getClass());
     private ExportData data;
 
     @Override
@@ -51,11 +55,13 @@ class CoronaCsvExporter implements Exporter {
 			line.append(email.get()).append(";");
 		    } else {
 			line.append("E-Mail unbekannt").append(";");
+			logger.warn("E-Mail unknown for " + att);
 		    }
 		    if (phone.isPresent()) {
 			line.append(phone.get()).append(";");
 		    } else {
 			line.append("Telefon unbekannt").append(";");
+			logger.warn("Phone unknown for " + att);
 		    }
 		    if (adress != null) {
 			line.append(adress.getAdress1()).append(",")
@@ -63,6 +69,7 @@ class CoronaCsvExporter implements Exporter {
 				.append(adress.getCity());
 		    } else {
 			line.append("Adresse unbekannt");
+			logger.warn("Adress unknown for " + att);
 		    }
 		    out.append(line);
 		    out.newLine();
