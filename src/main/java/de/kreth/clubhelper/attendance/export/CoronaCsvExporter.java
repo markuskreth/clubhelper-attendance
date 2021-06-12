@@ -47,11 +47,23 @@ class CoronaCsvExporter implements Exporter {
 		    Optional<Contact> email = contacts.stream().filter(CoronaCsvExporter::filterEmail).findFirst();
 		    Optional<Contact> phone = contacts.stream().filter(CoronaCsvExporter::filterPhone).findFirst();
 
-		    line.append(email.orElseThrow().getValue()).append(";");
-		    line.append(phone.orElseThrow().getValue()).append(";");
-		    line.append(adress.getAdress1()).append(",")
-			    .append(adress.getPlz()).append(",")
-			    .append(adress.getCity());
+		    if (email.isPresent()) {
+			line.append(email.get()).append(";");
+		    } else {
+			line.append("E-Mail unbekannt").append(";");
+		    }
+		    if (phone.isPresent()) {
+			line.append(phone.get()).append(";");
+		    } else {
+			line.append("Telefon unbekannt").append(";");
+		    }
+		    if (adress != null) {
+			line.append(adress.getAdress1()).append(",")
+				.append(adress.getPlz()).append(",")
+				.append(adress.getCity());
+		    } else {
+			line.append("Adresse unbekannt");
+		    }
 		    out.append(line);
 		    out.newLine();
 		}
