@@ -1,10 +1,13 @@
 package de.kreth.clubhelper.attendance.ui;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
 
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
 import com.vaadin.flow.component.AbstractField.ComponentValueChangeEvent;
@@ -17,6 +20,7 @@ import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.page.Page;
 import com.vaadin.flow.component.textfield.TextField;
@@ -34,6 +38,7 @@ import de.kreth.clubhelper.attendance.remote.Business;
 @CssImport("./styles/shared-styles.css")
 @CssImport(value = "./styles/vaadin-text-field-styles.css", themeFor = "vaadin-text-field")
 @PageTitle("Anwesenheit")
+@PreAuthorize("hasRole('ROLE_trainer')")
 public class AttendanceView extends VerticalLayout
 	implements ValueChangeListener<ComponentValueChangeEvent<TextField, String>> {
 
@@ -47,6 +52,7 @@ public class AttendanceView extends VerticalLayout
 
     public AttendanceView(@Value("${personeditor.url}") String personeditorUrl) {
 	this.personeditorUrl = personeditorUrl;
+	LoggerFactory.getLogger(getClass()).info("Using PersonEditor URL: " + personeditorUrl);
 	personList = new PersonUiList();
 	createUi();
 	refreshData();
@@ -77,26 +83,42 @@ public class AttendanceView extends VerticalLayout
 
 	grid.setDataProvider(personList.getDataProvider());
 
-	add(date, filter, grid);
+	Button printButton = new Button(VaadinIcon.PRINT.create());
+	printButton.addClickListener(e -> printButton.getUI().ifPresent(
+		ui -> ui.navigate(PrintAttendance.class, date.getValue().format(DateTimeFormatter.BASIC_ISO_DATE))));
+	HorizontalLayout components = new HorizontalLayout(date, filter, printButton);
+	components.setAlignSelf(Alignment.END, printButton);
+
+	add(components, grid);
+
+	setHeight("100%");
+	grid.setHeight("100%");
+
 	date.addValueChangeListener(ev -> refreshData());
     }
 
     Button createEditorButton(PersonAttendance p) {
 	Button b = new Button(VaadinIcon.PENCIL.create());
 	b.addClickListener(ev -> this.onClick(ev, p.getId()));
+	b.getElement().setProperty("title", "Editor für " + p.getSurname() + ", " + p.getPrename());
+	b.addClassName("BUTTON_LINK");
 	return b;
     }
 
     private void onClick(ClickEvent<Button> ev, Long personId) {
 	getUI().ifPresent(ui -> {
 	    Page page = ui.getPage();
-	    String url = this.personeditorUrl + "/" + personId;
+	    String url = editUrlForPersonId(personId);
 	    page.open(url, "_self");
 	});
     }
 
+    private String editUrlForPersonId(Long personId) {
+	return this.personeditorUrl + "/" + personId;
+    }
+
     private boolean withEditor() {
-	return personeditorUrl != null;
+	return !"NONE".equals(personeditorUrl);
     }
 
     @Override

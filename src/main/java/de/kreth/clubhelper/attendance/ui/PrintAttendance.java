@@ -1,76 +1,72 @@
 package de.kreth.clubhelper.attendance.ui;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
-import com.vaadin.flow.component.datepicker.DatePicker;
-import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.page.Push;
-import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.data.provider.DataProvider;
-import com.vaadin.flow.data.provider.ListDataProvider;
+import com.vaadin.flow.router.BeforeEnterEvent;
+import com.vaadin.flow.router.BeforeEnterObserver;
+import com.vaadin.flow.router.BeforeEvent;
+import com.vaadin.flow.router.HasUrlParameter;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.StreamResource;
 import com.vaadin.flow.server.VaadinServlet;
 
+import de.kreth.clubhelper.attendance.export.ExportData;
+import de.kreth.clubhelper.attendance.export.Exporter;
 import de.kreth.clubhelper.attendance.remote.Business;
 import de.kreth.clubhelper.attendance.remote.BusinessImpl;
-import de.kreth.clubhelper.data.Person;
 
 @Route("print")
 @Push
-public class PrintAttendance extends VerticalLayout {
+@PreAuthorize("hasRole('ROLE_trainer')")
+public class PrintAttendance extends VerticalLayout implements HasUrlParameter<String>, BeforeEnterObserver {
 
     private static final long serialVersionUID = 1L;
-
-    private TextField namefilter;
-    private HorizontalLayout filterPanel;
-
-    private List<Person> personList;
-    private Grid<Person> grid;
-    ListDataProvider<Person> provider;
-
-    private DatePicker datePicker;
+    private LocalDate onDate;
 
     public PrintAttendance() {
-	personList = new ArrayList<>();
 	add(new H1("Druck der Anwesenheitsliste"));
-
-	namefilter = new TextField("Namenfilter");
-	datePicker = new DatePicker("Anwesenheit Datum", LocalDate.now());
-
-	filterPanel = new HorizontalLayout();
-	filterPanel.add(namefilter, datePicker);
-
-	provider = DataProvider.ofCollection(personList);
-	provider.addFilter(this::filterByName);
-
-	grid = new Grid<>();
-	grid.setDataProvider(provider);
-	grid.setSizeFull();
-	add(filterPanel, grid);
-
-    }
-
-    private boolean filterByName(Person p) {
-	if (namefilter.getValue() == null || namefilter.getValue().trim().isEmpty()) {
-	    return true;
-	}
-
-	String filter = namefilter.getValue().trim().toLowerCase();
-
-	return p.getPrename().toLowerCase().startsWith(filter)
-		|| p.getSurname().toLowerCase().startsWith(filter);
     }
 
     Business getRestService() {
 	return WebApplicationContextUtils.getWebApplicationContext(VaadinServlet.getCurrent().getServletContext())
 		.getBean(BusinessImpl.class);
+    }
+
+    @Override
+    public void setParameter(BeforeEvent event, String parameter) {
+	onDate = LocalDate.parse(parameter, DateTimeFormatter.BASIC_ISO_DATE);
+    }
+
+    @Override
+    public void beforeEnter(BeforeEnterEvent event) {
+
+	HorizontalLayout exporterLayout = new HorizontalLayout();
+
+	add(exporterLayout);
+
+	ExportData createFor = ExportData.createFor(onDate, getRestService());
+
+	List<Exporter> exporters = Exporter.getExporters();
+	for (Exporter exporter : exporters) {
+	    Button exportButton = new Button(exporter.getName(), VaadinIcon.DOWNLOAD.create());
+	    StreamResource resource = exporter.asResource(createFor);
+	    Anchor anchor = new Anchor(resource, null);
+	    anchor.getElement().setAttribute("download", true);
+	    anchor.add(exportButton);
+	    exporterLayout.add(anchor);
+	}
     }
 
 }
