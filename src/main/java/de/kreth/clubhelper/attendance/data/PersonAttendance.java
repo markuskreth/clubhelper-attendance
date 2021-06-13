@@ -1,10 +1,13 @@
 package de.kreth.clubhelper.attendance.data;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.springframework.lang.Nullable;
 
 import de.kreth.clubhelper.data.Attendance;
+import de.kreth.clubhelper.data.GroupDef;
 import de.kreth.clubhelper.data.Person;
 
 public class PersonAttendance {
@@ -14,6 +17,8 @@ public class PersonAttendance {
     private String prename;
 
     private String surname;
+
+    private List<GroupDef> groups;
 
     @Nullable
     private LocalDate onDate;
@@ -54,6 +59,10 @@ public class PersonAttendance {
 	this.onDate = onDate;
     }
 
+    public boolean hasGroup(GroupDef group) {
+	return this.groups.contains(group);
+    }
+
     @Override
     public String toString() {
 	return "PersonAttendance [id=" + id + ", prename=" + prename + ", surname=" + surname + ", onDate=" + onDate
@@ -67,6 +76,7 @@ public class PersonAttendance {
 	pa.prename = person.getPrename();
 	pa.surname = person.getSurname();
 	pa.onDate = attendance.getOnDate();
+	pa.groups = new ArrayList<GroupDef>(person.getGroups());
 	return pa;
     }
 
@@ -76,6 +86,7 @@ public class PersonAttendance {
 	pa.prename = person.getPrename();
 	pa.surname = person.getSurname();
 	pa.onDate = null;
+	pa.groups = new ArrayList<GroupDef>(person.getGroups());
 	return pa;
     }
 

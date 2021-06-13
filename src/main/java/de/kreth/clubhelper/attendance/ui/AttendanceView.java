@@ -32,6 +32,9 @@ import com.vaadin.flow.server.VaadinServlet;
 
 import de.kreth.clubhelper.attendance.data.PersonAttendance;
 import de.kreth.clubhelper.attendance.remote.Business;
+import de.kreth.clubhelper.vaadincomponents.groupfilter.GroupFilter;
+import de.kreth.clubhelper.vaadincomponents.groupfilter.GroupFilterEvent;
+import de.kreth.clubhelper.vaadincomponents.groupfilter.GroupFilterListener;
 
 @Route("")
 @PWA(name = "MTV Trampolin Anwesenheit", shortName = "Anwesenheit", description = "Dies ist eine App zur Erfassung von Anwesenheiten für die Trampolingruppe des MTV Groß-Buchholz.", enableInstallPrompt = false)
@@ -40,7 +43,7 @@ import de.kreth.clubhelper.attendance.remote.Business;
 @PageTitle("Anwesenheit")
 @PreAuthorize("hasRole('ROLE_trainer')")
 public class AttendanceView extends VerticalLayout
-	implements ValueChangeListener<ComponentValueChangeEvent<TextField, String>> {
+	implements ValueChangeListener<ComponentValueChangeEvent<TextField, String>>, GroupFilterListener {
 
     private static final long serialVersionUID = 1L;
 
@@ -71,6 +74,8 @@ public class AttendanceView extends VerticalLayout
 	filter.setClearButtonVisible(true);
 
 	filter.addValueChangeListener(this);
+	GroupFilter groupFilter = new GroupFilter(getRestService().getAllGroups());
+	groupFilter.addListener(this);
 
 	Grid<PersonAttendance> grid = new Grid<>();
 	grid.addColumn(new ComponentRenderer<>(this::attendanteComponent)).setHeader("Anwesend").setFlexGrow(2)
@@ -89,7 +94,7 @@ public class AttendanceView extends VerticalLayout
 	HorizontalLayout components = new HorizontalLayout(date, filter, printButton);
 	components.setAlignSelf(Alignment.END, printButton);
 
-	add(components, grid);
+	add(components, groupFilter, grid);
 
 	setHeight("100%");
 	grid.setHeight("100%");
@@ -150,6 +155,11 @@ public class AttendanceView extends VerticalLayout
     Business getRestService() {
 	return WebApplicationContextUtils.getWebApplicationContext(VaadinServlet.getCurrent().getServletContext())
 		.getBean(Business.class);
+    }
+
+    @Override
+    public void groupFilterChange(GroupFilterEvent event) {
+	personList.setFilterGroups(event.getFilteredGroups());
     }
 
 }

@@ -8,6 +8,7 @@ import org.springframework.security.core.Authentication;
 import de.kreth.clubhelper.attendance.data.PersonAttendance;
 import de.kreth.clubhelper.data.Adress;
 import de.kreth.clubhelper.data.Contact;
+import de.kreth.clubhelper.data.GroupDef;
 import de.kreth.clubhelper.data.Person;
 
 public interface Business {
@@ -23,5 +24,7 @@ public interface Business {
     List<Contact> getContacts(Long personId);
 
     Adress getAdress(Long personId);
+
+    List<GroupDef> getAllGroups();
 
 }

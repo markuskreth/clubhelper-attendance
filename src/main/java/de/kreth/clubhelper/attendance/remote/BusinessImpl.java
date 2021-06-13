@@ -20,6 +20,7 @@ import de.kreth.clubhelper.attendance.data.PersonAttendance;
 import de.kreth.clubhelper.data.Adress;
 import de.kreth.clubhelper.data.Attendance;
 import de.kreth.clubhelper.data.Contact;
+import de.kreth.clubhelper.data.GroupDef;
 import de.kreth.clubhelper.data.Person;
 
 @Service
@@ -103,6 +104,17 @@ public class BusinessImpl implements Business {
     @Override
     public Authentication getCurrent() {
 	return SecurityContextHolder.getContext().getAuthentication();
+    }
+
+    @Override
+    public List<GroupDef> getAllGroups() {
+	List<GroupDef> allGroups = new ArrayList<GroupDef>();
+
+	String url = apiUrl + "/group";
+	GroupDef[] arr = webClient.getForObject(url, GroupDef[].class);
+	allGroups.addAll(Arrays.asList(arr));
+	return allGroups;
+
     }
 
 }
