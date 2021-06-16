@@ -52,13 +52,13 @@ class CoronaCsvExporter implements Exporter {
 		    Optional<Contact> phone = contacts.stream().filter(CoronaCsvExporter::filterPhone).findFirst();
 
 		    if (email.isPresent()) {
-			line.append(email.get()).append(";");
+			line.append(email.get().getValue()).append(";");
 		    } else {
 			line.append("E-Mail unbekannt").append(";");
 			logger.warn("E-Mail unknown for " + att);
 		    }
 		    if (phone.isPresent()) {
-			line.append(phone.get()).append(";");
+			line.append(phone.get().getValue()).append(";");
 		    } else {
 			line.append("Telefon unbekannt").append(";");
 			logger.warn("Phone unknown for " + att);
