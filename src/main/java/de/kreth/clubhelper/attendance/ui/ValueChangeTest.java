@@ -11,7 +11,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
-@Route
+@Route("test")
 @PageTitle("Value Change Tests")
 public class ValueChangeTest extends VerticalLayout {
 

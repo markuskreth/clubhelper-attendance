@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,7 +18,10 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dependency.CssImport;
+import com.vaadin.flow.component.grid.FooterRow;
+import com.vaadin.flow.component.grid.FooterRow.FooterCell;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.Grid.Column;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -53,12 +57,16 @@ public class AttendanceView extends VerticalLayout
 
     private DatePicker date;
 
+    private FooterCell attendanceSum;
+    private final AtomicInteger attendanceCount = new AtomicInteger();
+
     public AttendanceView(@Value("${personeditor.url}") String personeditorUrl) {
 	this.personeditorUrl = personeditorUrl;
 	LoggerFactory.getLogger(getClass()).info("Using PersonEditor URL: " + personeditorUrl);
 	personList = new PersonUiList();
 	createUi();
 	refreshData();
+	updateSum();
     }
 
     private void createUi() {
@@ -78,13 +86,18 @@ public class AttendanceView extends VerticalLayout
 	groupFilter.addListener(this);
 
 	Grid<PersonAttendance> grid = new Grid<>();
-	grid.addColumn(new ComponentRenderer<>(this::attendanteComponent)).setHeader("Anwesend").setFlexGrow(2)
+	Column<PersonAttendance> attendanceCol = grid.addColumn(new ComponentRenderer<>(this::attendanteComponent))
+		.setHeader("Anwesend")
+		.setFlexGrow(2)
 		.setSortable(true);
 	grid.addColumn(PersonAttendance::getPrename).setHeader("Vorname").setFlexGrow(3).setSortable(true);
 	grid.addColumn(PersonAttendance::getSurname).setHeader("Nachname").setFlexGrow(3).setSortable(true);
 	if (withEditor()) {
 	    grid.addComponentColumn(this::createEditorButton).setFlexGrow(1);
 	}
+
+	FooterRow footerRow = grid.appendFooterRow();
+	attendanceSum = footerRow.getCell(attendanceCol);
 
 	grid.setDataProvider(personList.getDataProvider());
 
@@ -143,13 +156,28 @@ public class AttendanceView extends VerticalLayout
 	Boolean selected = ev.getValue();
 	LocalDate attendanceDate = date.getValue();
 	PersonAttendance result = getRestService().sendAttendance(person, attendanceDate, selected);
+
 	personList.update(result);
+
+	if (selected.booleanValue()) {
+	    attendanceCount.incrementAndGet();
+	} else {
+	    attendanceCount.decrementAndGet();
+	}
+	updateSum();
     }
 
     private void refreshData() {
 	Business restService = getRestService();
 	List<PersonAttendance> attendanceAsJson = restService.getAttendance(date.getValue());
 	personList.setPersons(attendanceAsJson);
+
+	attendanceCount.set((int) attendanceAsJson.stream().filter(PersonAttendance::isAttendante).count());
+	updateSum();
+    }
+
+    private void updateSum() {
+	attendanceSum.setText("Anwesend: " + attendanceCount.get());
     }
 
     Business getRestService() {
