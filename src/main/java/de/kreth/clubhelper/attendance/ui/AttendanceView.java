@@ -14,15 +14,14 @@ import org.springframework.web.context.support.WebApplicationContextUtils;
 
 import com.vaadin.flow.component.AbstractField.ComponentValueChangeEvent;
 import com.vaadin.flow.component.ClickEvent;
-import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.HasValue.ValueChangeListener;
+import com.vaadin.flow.component.KeyPressEvent;
 import com.vaadin.flow.component.KeyUpEvent;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.grid.FooterRow;
-import com.vaadin.flow.component.grid.FooterRow.FooterCell;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.Grid.Column;
 import com.vaadin.flow.component.grid.ItemClickEvent;
@@ -36,7 +35,6 @@ import com.vaadin.flow.component.page.Page;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.dom.DomEvent;
-import com.vaadin.flow.dom.DomEventListener;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.PWA;
@@ -90,8 +88,9 @@ public class AttendanceView extends VerticalLayout
 		TextField filter = new TextField("Filter des Vor- oder Nachnamens");
 		filter.setPlaceholder("Filter nach Name...");
 		filter.setClearButtonVisible(true);
-		//		filter.addValueChangeListener(this);
-		filter.addKeyUpListener(this::filterTyped);
+		filter.addValueChangeListener(this);
+		filter.addKeyUpListener(this::filterKeyUp);
+		filter.addKeyPressListener(this::filterKeyPressed);
 		GroupFilter groupFilter = new GroupFilter(getRestService().getAllGroups());
 		groupFilter.addListener(this);
 
@@ -129,7 +128,7 @@ public class AttendanceView extends VerticalLayout
 
 	void showItemText(ItemClickEvent<PersonAttendance> event) {
 		PersonAttendance item = event.getItem();
-		String text = item.getPrename() + item.getSurname();
+		String text = item.getPrename() + " " + item.getSurname();
 		Notification.show(text);
 	}
 	
@@ -164,16 +163,36 @@ public class AttendanceView extends VerticalLayout
 
 	@Override
 	public void valueChanged(ComponentValueChangeEvent<TextField, String> event) {
+		if (currentHandler != null) {
+			currentHandler.execute.set(false);
+			currentHandler = null;
+		}
+		
 		personList.setFilterText(event.getValue());
 	}
 
-	void filterTyped(KeyUpEvent event) {
+	void filterKeyUp(KeyUpEvent event) {
 		TextField field = (TextField) event.getSource();
 		if (currentHandler != null) {
+			if (field.getValue().equals(currentHandler.text)) {
+				return;
+			}
 			currentHandler.execute.set(false);
 		}
 		currentHandler = new UpdateFilterHandler(field.getValue()).execute();
 	}
+
+	void filterKeyPressed(KeyPressEvent event) {
+		TextField field = (TextField) event.getSource();
+		if (currentHandler != null) {
+			if (field.getValue() != null && field.getValue().equals(currentHandler.text)) {
+				return;
+			}
+			currentHandler.execute.set(false);
+		}
+		currentHandler = new UpdateFilterHandler(field.getValue()).execute();
+	}
+	
 	private Checkbox attendanteComponent(PersonAttendance person) {
 
 		Checkbox box = new Checkbox();
@@ -240,7 +259,7 @@ public class AttendanceView extends VerticalLayout
 		public void run() {
 			
 			try {
-				Thread.sleep(1500);
+				Thread.sleep(1000);
 			} catch (InterruptedException e) {
 				return;
 			}
