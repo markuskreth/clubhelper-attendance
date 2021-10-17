@@ -4,9 +4,9 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -15,8 +15,6 @@ import org.springframework.web.context.support.WebApplicationContextUtils;
 import com.vaadin.flow.component.AbstractField.ComponentValueChangeEvent;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.HasValue.ValueChangeListener;
-import com.vaadin.flow.component.KeyPressEvent;
-import com.vaadin.flow.component.KeyUpEvent;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.datepicker.DatePicker;
@@ -32,8 +30,10 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.page.Page;
+import com.vaadin.flow.component.page.Push;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.dom.DomEvent;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
@@ -46,6 +46,7 @@ import de.kreth.clubhelper.vaadincomponents.groupfilter.GroupFilter;
 import de.kreth.clubhelper.vaadincomponents.groupfilter.GroupFilterEvent;
 import de.kreth.clubhelper.vaadincomponents.groupfilter.GroupFilterListener;
 
+@Push
 @Route("")
 @PWA(name = "MTV Trampolin Anwesenheit", shortName = "Anwesenheit", description = "Dies ist eine App zur Erfassung von Anwesenheiten für die Trampolingruppe des MTV Groß-Buchholz.", enableInstallPrompt = false)
 @CssImport("./styles/shared-styles.css")
@@ -55,6 +56,8 @@ import de.kreth.clubhelper.vaadincomponents.groupfilter.GroupFilterListener;
 public class AttendanceView extends VerticalLayout
 		implements ValueChangeListener<ComponentValueChangeEvent<TextField, String>>, GroupFilterListener {
 
+	final Logger logger = LoggerFactory.getLogger(getClass());
+	
 	private static final long serialVersionUID = 1L;
 
 	private String personeditorUrl;
@@ -64,7 +67,6 @@ public class AttendanceView extends VerticalLayout
 	private DatePicker date;
 
 	private Label attendanceSum;
-	private UpdateFilterHandler currentHandler;
 	
 	private final AtomicInteger attendanceCount = new AtomicInteger();
 
@@ -75,6 +77,7 @@ public class AttendanceView extends VerticalLayout
 		createUi();
 		refreshData();
 		updateSum();
+		logger.info(getClass().getName() + " gestartet.");
 	}
 
 	private void createUi() {
@@ -89,8 +92,9 @@ public class AttendanceView extends VerticalLayout
 		filter.setPlaceholder("Filter nach Name...");
 		filter.setClearButtonVisible(true);
 		filter.addValueChangeListener(this);
-		filter.addKeyUpListener(this::filterKeyUp);
-		filter.addKeyPressListener(this::filterKeyPressed);
+		filter.setValueChangeMode(ValueChangeMode.TIMEOUT);
+		filter.setValueChangeTimeout(700);
+		
 		GroupFilter groupFilter = new GroupFilter(getRestService().getAllGroups());
 		groupFilter.addListener(this);
 
@@ -127,13 +131,16 @@ public class AttendanceView extends VerticalLayout
 	}
 
 	void showItemText(ItemClickEvent<PersonAttendance> event) {
+		
 		PersonAttendance item = event.getItem();
 		String text = item.getPrename() + " " + item.getSurname();
+		logger.debug("Notification für " + item);
 		Notification.show(text);
 	}
 	
 	void showText(DomEvent ev) {
 		String text = ev.getSource().getText();
+		logger.debug("Notification für " + ev.getSource() + ": ");
 		Notification.show(text);
 	}
 	
@@ -146,6 +153,7 @@ public class AttendanceView extends VerticalLayout
 	}
 
 	private void onClick(ClickEvent<Button> ev, Long personId) {
+		logger.info("Opening Editor für Id=" + personId);
 		getUI().ifPresent(ui -> {
 			Page page = ui.getPage();
 			String url = editUrlForPersonId(personId);
@@ -163,34 +171,10 @@ public class AttendanceView extends VerticalLayout
 
 	@Override
 	public void valueChanged(ComponentValueChangeEvent<TextField, String> event) {
-		if (currentHandler != null) {
-			currentHandler.execute.set(false);
-			currentHandler = null;
-		}
-		
+		StringBuilder logText = new StringBuilder();
+		logText.append("Filtering by Name: " + event.getValue());
+		logger.info(logText.toString());
 		personList.setFilterText(event.getValue());
-	}
-
-	void filterKeyUp(KeyUpEvent event) {
-		TextField field = (TextField) event.getSource();
-		if (currentHandler != null) {
-			if (field.getValue().equals(currentHandler.text)) {
-				return;
-			}
-			currentHandler.execute.set(false);
-		}
-		currentHandler = new UpdateFilterHandler(field.getValue()).execute();
-	}
-
-	void filterKeyPressed(KeyPressEvent event) {
-		TextField field = (TextField) event.getSource();
-		if (currentHandler != null) {
-			if (field.getValue() != null && field.getValue().equals(currentHandler.text)) {
-				return;
-			}
-			currentHandler.execute.set(false);
-		}
-		currentHandler = new UpdateFilterHandler(field.getValue()).execute();
 	}
 	
 	private Checkbox attendanteComponent(PersonAttendance person) {
@@ -202,8 +186,10 @@ public class AttendanceView extends VerticalLayout
 	}
 
 	private void sendPersonAttendance(PersonAttendance person, ComponentValueChangeEvent<Checkbox, Boolean> ev) {
+		
 		Boolean selected = ev.getValue();
 		LocalDate attendanceDate = date.getValue();
+		logger.info("Changing Attendance Value for " + person + " to " + selected);
 		PersonAttendance result = getRestService().sendAttendance(person, attendanceDate, selected);
 
 		personList.update(result);
@@ -223,6 +209,7 @@ public class AttendanceView extends VerticalLayout
 
 		attendanceCount.set((int) attendanceAsJson.stream().filter(PersonAttendance::isAttendante).count());
 		updateSum();
+		logger.info("Refreshed View.");
 	}
 
 	private void updateSum() {
@@ -239,34 +226,4 @@ public class AttendanceView extends VerticalLayout
 		personList.setFilterGroups(event.getFilteredGroups());
 	}
 
-	class UpdateFilterHandler extends Thread {
-		
-		final AtomicBoolean execute = new AtomicBoolean();
-		
-		private final String text;
-		
-		public UpdateFilterHandler(String text) {
-			super();
-			this.text = text;
-		}
-		
-		public UpdateFilterHandler execute() {
-			start();
-			return this;
-		}
-
-		@Override
-		public void run() {
-			
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				return;
-			}
-			if (execute.get()) {
-				personList.setFilterText(text);
-			}
-		}
-		
-	}
 }
