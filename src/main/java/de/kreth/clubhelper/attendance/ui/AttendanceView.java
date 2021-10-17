@@ -14,9 +14,12 @@ import org.springframework.web.context.support.WebApplicationContextUtils;
 
 import com.vaadin.flow.component.AbstractField.ComponentValueChangeEvent;
 import com.vaadin.flow.component.ClickEvent;
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.HasValue.ValueChangeListener;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.contextmenu.ContextMenu;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.grid.FooterRow;
@@ -99,13 +102,12 @@ public class AttendanceView extends VerticalLayout
 		groupFilter.addListener(this);
 
 		Grid<PersonAttendance> grid = new Grid<>();
-		Column<PersonAttendance> attendanceCol = grid.addColumn(new ComponentRenderer<>(this::attendanteComponent))
-				.setHeader("Anwesend").setFlexGrow(2).setSortable(true);
-		grid.addColumn(PersonAttendance::getPrename).setHeader("Vorname").setFlexGrow(3).setSortable(true);
-		grid.addColumn(PersonAttendance::getSurname).setHeader("Nachname").setFlexGrow(3).setSortable(true);
-		if (withEditor()) {
-			grid.addComponentColumn(this::createEditorButton).setFlexGrow(1);
-		}
+		Column<PersonAttendance> attendanceCol = grid.addColumn(new ComponentRenderer<>(this::attendanteComponent));
+//		grid.addColumn(PersonAttendance::getPrename).setHeader("Vorname").setFlexGrow(3).setSortable(true);
+//		grid.addColumn(PersonAttendance::getSurname).setHeader("Nachname").setFlexGrow(3).setSortable(true);
+//		if (withEditor()) {
+//			grid.addComponentColumn(this::createEditorButton).setFlexGrow(1);
+//		}
 		
 		grid.addItemClickListener(this::showItemText);
 
@@ -146,13 +148,13 @@ public class AttendanceView extends VerticalLayout
 	
 	Button createEditorButton(PersonAttendance p) {
 		Button b = new Button(VaadinIcon.PENCIL.create());
-		b.addClickListener(ev -> this.onClick(ev, p.getId()));
+		b.addClickListener(ev -> this.onClick(p.getId()));
 		b.getElement().setProperty("title", "Editor für " + p.getSurname() + ", " + p.getPrename());
 		b.addClassName("BUTTON_LINK");
 		return b;
 	}
 
-	private void onClick(ClickEvent<Button> ev, Long personId) {
+	private void onClick(Long personId) {
 		logger.info("Opening Editor für Id=" + personId);
 		getUI().ifPresent(ui -> {
 			Page page = ui.getPage();
@@ -177,12 +179,20 @@ public class AttendanceView extends VerticalLayout
 		personList.setFilterText(event.getValue());
 	}
 	
-	private Checkbox attendanteComponent(PersonAttendance person) {
+	private Component attendanteComponent(PersonAttendance person) {
 
 		Checkbox box = new Checkbox();
 		box.setValue(person.isAttendante());
 		box.addValueChangeListener(ev -> sendPersonAttendance(person, ev));
-		return box;
+		Label name = new Label(person.getPrename() + " " + person.getSurname());
+		HorizontalLayout layout = new HorizontalLayout(box, name);
+		
+		if (withEditor()) {
+			ContextMenu menu = new ContextMenu(layout);			
+			menu.addItem(new Button(VaadinIcon.PENCIL.create()), ev -> this.onClick(person.getId()));
+		}
+		
+		return layout;
 	}
 
 	private void sendPersonAttendance(PersonAttendance person, ComponentValueChangeEvent<Checkbox, Boolean> ev) {
