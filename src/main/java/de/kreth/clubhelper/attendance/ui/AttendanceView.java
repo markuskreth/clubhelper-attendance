@@ -4,7 +4,9 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,12 +15,11 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
 import com.vaadin.flow.component.AbstractField.ComponentValueChangeEvent;
-import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.HasValue.ValueChangeListener;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.contextmenu.ContextMenu;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dependency.CssImport;
@@ -30,8 +31,13 @@ import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.orderedlayout.FlexLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment;
+import com.vaadin.flow.component.orderedlayout.FlexLayout.ContentAlignment;
+import com.vaadin.flow.component.orderedlayout.FlexLayout.FlexDirection;
+import com.vaadin.flow.component.orderedlayout.FlexLayout.FlexWrap;
 import com.vaadin.flow.component.page.Page;
 import com.vaadin.flow.component.page.Push;
 import com.vaadin.flow.component.textfield.TextField;
@@ -101,16 +107,22 @@ public class AttendanceView extends VerticalLayout
 		GroupFilter groupFilter = new GroupFilter(getRestService().getAllGroups());
 		groupFilter.addListener(this);
 
+		ComboBox<PersonSort> sorting = new ComboBox<>("Sortierung") {
+			
+			private static final long serialVersionUID = -3767819950249464482L;
+
+			@Override
+			public PersonSort getEmptyValue() {
+				return PersonSort.None;
+			}
+		};
+		sorting.setItems(PersonSort.values());
+		sorting.setValue(PersonSort.None);
+		
 		Grid<PersonAttendance> grid = new Grid<>();
 		Column<PersonAttendance> attendanceCol = grid.addColumn(new ComponentRenderer<>(this::attendanteComponent));
-//		grid.addColumn(PersonAttendance::getPrename).setHeader("Vorname").setFlexGrow(3).setSortable(true);
-//		grid.addColumn(PersonAttendance::getSurname).setHeader("Nachname").setFlexGrow(3).setSortable(true);
-//		if (withEditor()) {
-//			grid.addComponentColumn(this::createEditorButton).setFlexGrow(1);
-//		}
-		
 		grid.addItemClickListener(this::showItemText);
-
+		grid.setMinHeight("400px");
 		attendanceSum = new Label();
 		attendanceSum.getElement().addEventListener("click", this::showText);
 		FooterRow footerRow = grid.appendFooterRow();
@@ -121,19 +133,37 @@ public class AttendanceView extends VerticalLayout
 		Button printButton = new Button(VaadinIcon.PRINT.create());
 		printButton.addClickListener(e -> printButton.getUI().ifPresent(
 				ui -> ui.navigate(PrintAttendance.class, date.getValue().format(DateTimeFormatter.BASIC_ISO_DATE))));
-		HorizontalLayout components = new HorizontalLayout(date, filter, printButton);
-		components.setAlignSelf(Alignment.END, printButton);
+		FlexLayout dateAndPrint = new FlexLayout(date, printButton);
 
-		add(components, groupFilter, grid);
+		dateAndPrint.setFlexDirection(FlexDirection.ROW);
+		dateAndPrint.setAlignItems(Alignment.START);
+		dateAndPrint.setFlexWrap(FlexWrap.WRAP);
+		dateAndPrint.setAlignContent(ContentAlignment.START);
+		dateAndPrint.setAlignSelf(Alignment.END, printButton);
 
-		setHeight("100%");
-		grid.setHeight("100%");
+		FlexLayout sortAndFilter = new FlexLayout(sorting, filter);
+
+		sortAndFilter.setFlexDirection(FlexDirection.ROW);
+		sortAndFilter.setAlignItems(Alignment.START);
+		sortAndFilter.setFlexWrap(FlexWrap.WRAP);
+		sortAndFilter.setAlignContent(ContentAlignment.START);
+		sortAndFilter.setAlignSelf(Alignment.END, printButton);
+
+		add(dateAndPrint, groupFilter, sortAndFilter, grid);
+
+		setSizeFull();
+		expand(grid);
 
 		date.addValueChangeListener(ev -> refreshData());
+		sort(PersonSort.None);
+		sorting.addValueChangeListener(ev -> sort(ev.getValue()));
 	}
 
+	void sort (final PersonSort order) {
+		personList.sort(p -> new PersonAttendanceComparable(p, order));
+	}
+	
 	void showItemText(ItemClickEvent<PersonAttendance> event) {
-		
 		PersonAttendance item = event.getItem();
 		String text = item.getPrename() + " " + item.getSurname();
 		logger.debug("Notification für " + item);
@@ -200,16 +230,22 @@ public class AttendanceView extends VerticalLayout
 		Boolean selected = ev.getValue();
 		LocalDate attendanceDate = date.getValue();
 		logger.info("Changing Attendance Value for " + person + " to " + selected);
-		PersonAttendance result = getRestService().sendAttendance(person, attendanceDate, selected);
+		try {
 
-		personList.update(result);
+			PersonAttendance result = getRestService().sendAttendance(person, attendanceDate, selected);
 
-		if (selected.booleanValue()) {
-			attendanceCount.incrementAndGet();
-		} else {
-			attendanceCount.decrementAndGet();
+			personList.update(result);
+
+			if (selected.booleanValue()) {
+				attendanceCount.incrementAndGet();
+			} else {
+				attendanceCount.decrementAndGet();
+			}
+			updateSum();
+		} catch (Exception e) {
+			logger.error("Error sending " + person, e);
+			refreshData();
 		}
-		updateSum();
 	}
 
 	private void refreshData() {
@@ -236,4 +272,41 @@ public class AttendanceView extends VerticalLayout
 		personList.setFilterGroups(event.getFilteredGroups());
 	}
 
+	class PersonAttendanceComparable implements Comparable<PersonAttendanceComparable> {
+
+		final PersonAttendance toCompare;
+		final PersonSort order;
+
+		public PersonAttendanceComparable(PersonAttendance toCompare) {
+			this(toCompare, PersonSort.None);
+		}
+
+		public PersonAttendanceComparable(PersonAttendance toCompare, PersonSort order) {
+			super();
+			this.toCompare = toCompare;
+			this.order = Objects.requireNonNull(order);
+		}
+
+		@Override
+		public int compareTo(PersonAttendanceComparable o) {
+			if (toCompare.isAttendante() == o.toCompare.isAttendante()) {
+				switch (order) {
+				case ByPrename:
+					return toCompare.getPrename().compareTo(o.toCompare.getPrename());
+				case BySurname:
+					return toCompare.getSurname().compareTo(o.toCompare.getSurname());
+				default:
+					if (toCompare.getId() != null) {
+						return toCompare.getId().compareTo(o.toCompare.getId());
+					}
+					else {
+						return 0;
+					}
+				}
+			} else {
+				return Boolean.compare(o.toCompare.isAttendante(), toCompare.isAttendante());
+			}
+		}
+		
+	}
 }
