@@ -4,6 +4,8 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -38,7 +40,8 @@ class CoronaCsvExporter implements Exporter {
 
 	    @Override
 	    public void accept(OutputStream stream, VaadinSession session) throws IOException {
-		BufferedWriter out = new BufferedWriter(new OutputStreamWriter(stream));
+	    	
+		BufferedWriter out = new BufferedWriter(new OutputStreamWriter(stream, StandardCharsets.UTF_8));
 		writeHead(out);
 
 		for (PersonAttendance att : data.getData()) {
