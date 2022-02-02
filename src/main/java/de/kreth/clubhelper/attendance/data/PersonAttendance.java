@@ -12,107 +12,111 @@ import de.kreth.clubhelper.data.Person;
 
 public class PersonAttendance {
 
-    private Long id;
+	private Long id;
 
-    private String prename;
+	private String prename;
 
-    private String surname;
+	private String surname;
 
-    private List<GroupDef> groups;
+	private List<GroupDef> groups;
 
-    @Nullable
-    private LocalDate onDate;
+	@Nullable
+	private LocalDate onDate;
 
-    public Long getId() {
-	return id;
-    }
+	public Long getId() {
+		return id;
+	}
 
-    public void setId(Long id) {
-	this.id = id;
-    }
+	public void setId(Long id) {
+		this.id = id;
+	}
 
-    public String getPrename() {
-	return prename;
-    }
+	public String getPrename() {
+		return prename;
+	}
 
-    public void setPrename(String prename) {
-	this.prename = prename;
-    }
+	public void setPrename(String prename) {
+		this.prename = prename;
+	}
 
-    public String getSurname() {
-	return surname;
-    }
+	public String getSurname() {
+		return surname;
+	}
 
-    public void setSurname(String surname) {
-	this.surname = surname;
-    }
+	public void setSurname(String surname) {
+		this.surname = surname;
+	}
 
-    public LocalDate getOnDate() {
-	return onDate;
-    }
+	public LocalDate getOnDate() {
+		return onDate;
+	}
 
-    public boolean isAttendante() {
-	return onDate != null;
-    }
+	public boolean isAttendante() {
+		return onDate != null;
+	}
 
-    public void setOnDate(LocalDate onDate) {
-	this.onDate = onDate;
-    }
+	public void setOnDate(LocalDate onDate) {
+		this.onDate = onDate;
+	}
 
-    public boolean hasGroup(GroupDef group) {
-	return this.groups.contains(group);
-    }
+	public boolean hasGroup(GroupDef group) {
+		return this.groups.contains(group);
+	}
 
-    @Override
-    public String toString() {
-	return "PersonAttendance [id=" + id + ", prename=" + prename + ", surname=" + surname + ", onDate=" + onDate
-		+ "]";
-    }
+	public boolean groupsIsEmpty() {
+		return this.groups.isEmpty();
+	}
+	
+	@Override
+	public String toString() {
+		return "PersonAttendance [id=" + id + ", prename=" + prename + ", surname=" + surname + ", onDate=" + onDate
+				+ "]";
+	}
 
-    public static PersonAttendance createBy(Attendance attendance) {
-	PersonAttendance pa = new PersonAttendance();
-	Person person = attendance.getPerson();
-	pa.id = person.getId();
-	pa.prename = person.getPrename();
-	pa.surname = person.getSurname();
-	pa.onDate = attendance.getOnDate();
-	pa.groups = new ArrayList<GroupDef>(person.getGroups());
-	return pa;
-    }
+	public static PersonAttendance createBy(Attendance attendance) {
+		PersonAttendance pa = new PersonAttendance();
+		Person person = attendance.getPerson();
+		pa.id = person.getId();
+		pa.prename = person.getPrename();
+		pa.surname = person.getSurname();
+		pa.onDate = attendance.getOnDate();
+		pa.groups = new ArrayList<GroupDef>(person.getGroups());
+		return pa;
+	}
 
-    public static PersonAttendance createBy(Person person) {
-	PersonAttendance pa = new PersonAttendance();
-	pa.id = person.getId();
-	pa.prename = person.getPrename();
-	pa.surname = person.getSurname();
-	pa.onDate = null;
-	pa.groups = new ArrayList<GroupDef>(person.getGroups());
-	return pa;
-    }
+	public static PersonAttendance createBy(Person person) {
+		PersonAttendance pa = new PersonAttendance();
+		pa.id = person.getId();
+		pa.prename = person.getPrename();
+		pa.surname = person.getSurname();
+		pa.onDate = null;
+		pa.groups = new ArrayList<GroupDef>(person.getGroups());
+		return pa;
+	}
 
-    @Override
-    public int hashCode() {
-	final int prime = 31;
-	int result = 1;
-	result = prime * result + ((id == null) ? 0 : id.hashCode());
-	return result;
-    }
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((id == null) ? 0 : id.hashCode());
+		return result;
+	}
 
-    @Override
-    public boolean equals(Object obj) {
-	if (this == obj)
-	    return true;
-	if (obj == null)
-	    return false;
-	if (getClass() != obj.getClass())
-	    return false;
-	PersonAttendance other = (PersonAttendance) obj;
-	if (id == null) {
-	    if (other.id != null)
-		return false;
-	} else if (!id.equals(other.id))
-	    return false;
-	return true;
-    }
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		PersonAttendance other = (PersonAttendance) obj;
+		if (id == null) {
+			if (other.id != null)
+				return false;
+		} else if (!id.equals(other.id))
+			return false;
+		return true;
+	}
 
 }

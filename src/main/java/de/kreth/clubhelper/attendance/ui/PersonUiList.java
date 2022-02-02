@@ -58,11 +58,13 @@ public class PersonUiList implements Serializable {
 				|| person.getPrename().toLowerCase().contains(filterText)
 				|| person.getSurname().toLowerCase().contains(filterText);
 
-		boolean filterGroupMatches = false;
-		for (GroupDef groupDef : filteredGroups) {
-			if (person.hasGroup(groupDef)) {
-				filterGroupMatches = true;
-				break;
+		boolean filterGroupMatches = person.groupsIsEmpty();
+		if (!filterGroupMatches) {
+			for (GroupDef groupDef : filteredGroups) {
+				if (person.hasGroup(groupDef)) {
+					filterGroupMatches = true;
+					break;
+				}
 			}
 		}
 
