@@ -6,7 +6,7 @@
 	<groupId>de.kreth.clubhelper</groupId>
 	<artifactId>clubhelper.attendance</artifactId>
 	<name>Clubhelper App for Attendance</name>
-	<version>1.0-SNAPSHOT</version>
+	<version>0.1.0</version>
 	<packaging>jar</packaging>
 
 	<properties>
@@ -165,12 +165,12 @@
 		<dependency>
 			<groupId>de.kreth.clubhelper</groupId>
 			<artifactId>clubhelper-data</artifactId>
-			<version>0.0.2-SNAPSHOT</version>
+			<version>0.1.0</version>
 		</dependency>
 		<dependency>
 			<groupId>de.kreth.clubhelper</groupId>
 			<artifactId>vaadincomponents</artifactId>
-			<version>0.0.2-SNAPSHOT</version>
+			<version>0.1.0</version>
 		</dependency>
 	</dependencies>
 
