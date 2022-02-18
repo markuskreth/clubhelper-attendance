@@ -52,11 +52,11 @@ public class UiSecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
 	@Override
 	public void configure(HttpSecurity http) throws Exception {
 		super.configure(http);
-		http.csrf()
-			.disable().anonymous()
-			.disable().authorizeRequests()
-			.requestMatchers(SecurityUtils::isFrameworkInternalRequest).permitAll()
-			.anyRequest() .hasAnyRole("ROLE_trainer", "ROLE_admin");
+		http
+			.csrf().disable()
+			.anonymous().disable()
+			.authorizeRequests().requestMatchers(SecurityUtils::isFrameworkInternalRequest).permitAll()
+			.anyRequest().hasAnyRole("ROLE_trainer", "ROLE_admin");
 
 	}
 
