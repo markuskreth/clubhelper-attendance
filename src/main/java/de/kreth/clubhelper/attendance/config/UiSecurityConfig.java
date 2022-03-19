@@ -33,11 +33,6 @@ public class UiSecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
 	}
 
 	@Bean
-	public KeycloakConfigResolver keyCloakConfigResolver() {
-		return new KeycloakSpringBootConfigResolver();
-	}
-
-	@Bean
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public KeycloakRestTemplate restTemplate() {
 		return new KeycloakRestTemplate(factory);

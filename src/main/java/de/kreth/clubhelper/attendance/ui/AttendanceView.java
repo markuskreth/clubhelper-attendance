@@ -9,9 +9,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.context.support.WebApplicationContextUtils;
 
 import com.vaadin.flow.component.AbstractField.ComponentValueChangeEvent;
 import com.vaadin.flow.component.Component;
@@ -49,6 +49,7 @@ import com.vaadin.flow.server.VaadinServlet;
 
 import de.kreth.clubhelper.attendance.data.PersonAttendance;
 import de.kreth.clubhelper.attendance.remote.Business;
+import de.kreth.clubhelper.data.GroupDef;
 import de.kreth.clubhelper.vaadincomponents.groupfilter.GroupFilter;
 import de.kreth.clubhelper.vaadincomponents.groupfilter.GroupFilterEvent;
 import de.kreth.clubhelper.vaadincomponents.groupfilter.GroupFilterListener;
@@ -77,8 +78,11 @@ public class AttendanceView extends VerticalLayout
 	
 	private final AtomicInteger attendanceCount = new AtomicInteger();
 
-	public AttendanceView(@Value("${personeditor.url}") String personeditorUrl) {
+	private Business restService;
+
+	public AttendanceView(@Value("${personeditor.url}") String personeditorUrl, @Autowired Business restService) {
 		this.personeditorUrl = personeditorUrl;
+		this.restService = restService;
 		LoggerFactory.getLogger(getClass()).info("Using PersonEditor URL: " + personeditorUrl);
 		personList = new PersonUiList();
 		createUi();
@@ -102,7 +106,7 @@ public class AttendanceView extends VerticalLayout
 		filter.setValueChangeMode(ValueChangeMode.TIMEOUT);
 		filter.setValueChangeTimeout(700);
 		
-		GroupFilter groupFilter = new GroupFilter(getRestService().getAllGroups());
+		GroupFilter groupFilter = new GroupFilter(restService.getAllGroups());
 		groupFilter.addListener(this);
 
 		ComboBox<PersonSort> sorting = new ComboBox<>("Sortierung") {
@@ -230,7 +234,7 @@ public class AttendanceView extends VerticalLayout
 		logger.info("Changing Attendance Value for " + person + " to " + selected);
 		try {
 
-			PersonAttendance result = getRestService().sendAttendance(person, attendanceDate, selected);
+			PersonAttendance result = restService.sendAttendance(person, attendanceDate, selected);
 
 			personList.update(result);
 
@@ -247,7 +251,6 @@ public class AttendanceView extends VerticalLayout
 	}
 
 	private void refreshData() {
-		Business restService = getRestService();
 		List<PersonAttendance> attendanceAsJson = restService.getAttendance(date.getValue());
 		personList.setPersons(attendanceAsJson);
 
@@ -258,11 +261,6 @@ public class AttendanceView extends VerticalLayout
 
 	private void updateSum() {
 		attendanceSum.setText("Anwesend: " + attendanceCount.get());
-	}
-
-	Business getRestService() {
-		return WebApplicationContextUtils.getWebApplicationContext(VaadinServlet.getCurrent().getServletContext())
-				.getBean(Business.class);
 	}
 
 	@Override
