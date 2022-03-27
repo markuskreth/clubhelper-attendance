@@ -17,3 +17,9 @@ error-screenshots/
 webpack.generated.js
 
 *.launch
+
+package-lock.json
+
+package.json
+
+webpack.config.js
