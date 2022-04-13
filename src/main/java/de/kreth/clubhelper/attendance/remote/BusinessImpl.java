@@ -21,6 +21,7 @@ import de.kreth.clubhelper.data.Adress;
 import de.kreth.clubhelper.data.Attendance;
 import de.kreth.clubhelper.data.Contact;
 import de.kreth.clubhelper.data.GroupDef;
+import de.kreth.clubhelper.data.OrderBy;
 import de.kreth.clubhelper.data.Person;
 
 @Service
@@ -35,8 +36,12 @@ public class BusinessImpl implements Business {
 	private String apiUrl;
 
 	@Override
-	public List<Person> getPersons() {
+	public List<Person> getPersons(OrderBy order) {
+		
 		String url = apiUrl + "/person";
+		if (order != null) {
+			url += "/ordered/" + order.name();
+		}
 		Person[] list = webClient.getForObject(url, Person[].class);
 		return Arrays.asList(list);
 	}
@@ -66,7 +71,7 @@ public class BusinessImpl implements Business {
 		String url = apiUrl + "/attendance/" + date.format(DateTimeFormatter.ISO_DATE);
 
 		try {
-			List<Person> persons = new ArrayList<>(getPersons());
+			List<Person> persons = new ArrayList<>(getPersons(OrderBy.ATTENDANCE));
 			Attendance[] body = webClient.getForObject(url, Attendance[].class);
 
 			List<PersonAttendance> result = new ArrayList<>();

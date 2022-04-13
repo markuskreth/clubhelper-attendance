@@ -9,11 +9,12 @@ import de.kreth.clubhelper.attendance.data.PersonAttendance;
 import de.kreth.clubhelper.data.Adress;
 import de.kreth.clubhelper.data.Contact;
 import de.kreth.clubhelper.data.GroupDef;
+import de.kreth.clubhelper.data.OrderBy;
 import de.kreth.clubhelper.data.Person;
 
 public interface Business {
 
-    List<Person> getPersons();
+    List<Person> getPersons(OrderBy order);
 
     List<PersonAttendance> getAttendance(LocalDate date);
 
