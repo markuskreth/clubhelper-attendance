@@ -249,4 +249,10 @@
 		</profile>
 
 	</profiles>
+	
+	<scm>
+		<url>scm:git:https://github.com/markuskreth/clubhelper-attendance.git</url>
+		<developerConnection>scm:git:https://github.com/markuskreth/clubhelper-attendance.git</developerConnection>
+		<connection>scm:git:https://github.com/markuskreth/clubhelper-attendance.git</connection>
+	</scm>
 </project>
